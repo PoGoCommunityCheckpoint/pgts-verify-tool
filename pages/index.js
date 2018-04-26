@@ -1,5 +1,5 @@
-import SheetsWrapper from '../components/SheetsWrapper'
+import GapiWrapper from '../components/GapiWrapper'
 import Demo from '../components/Demo'
 
 export default () =>
-  <SheetsWrapper><Demo /></SheetsWrapper>
+  <GapiWrapper><Demo /></GapiWrapper>

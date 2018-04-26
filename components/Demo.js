@@ -29,13 +29,13 @@ export default class Demo extends Component {
   fetchSheet = () => {
     gapi.client.sheets.spreadsheets.values.get({
       spreadsheetId: this.state.id,
-      range: 'raw-responses!A:Q'
+      range: 'Form Data!A:Q'
     }).then(response => {
       var range = response.result
       var mapping = response.result.values[0]
         .reduce((mapping, heading, index) => {
           mapping[index] = heading
-          if (heading === 'Organizer Name') {
+          if (heading === 'Verified By') {
             this.setState({ organizerColumn: toColumnName(index + 1)})
           }
           return mapping

@@ -4,30 +4,53 @@ export default class SheetSelector extends Component {
   constructor() {
     super()
     this.state =
-      { sheetURL: 'https://docs.google.com/spreadsheets/d/191jgLSJlTmVhWY-ar14hAIjfuG_saPM56NObhZ4JBz0'
+      { fileID: 'https://docs.google.com/spreadsheets/d/191jgLSJlTmVhWY-ar14hAIjfuG_saPM56NObhZ4JBz0'
+      , files: []
+      , error: ''
       }
+  }
+
+  componentDidMount() {
+    this.listSheets()
   }
 
   onSubmit = e => {
     e.preventDefault()
-    const idMatches = (/\/d\/([^/]+)/g).exec(this.state.sheetURL)
-    console.log(idMatches)
-    if (idMatches[1]) {
-      this.props.onSubmit(idMatches[1])
-    }
+    this.props.onSubmit(this.state.fileID)
+  }
+
+  listSheets = () => {
+    gapi.client.drive.files.list({
+      'q': 'name contains "TSGo:" and mimeType contains "application/vnd.google-apps.spreadsheet"'
+    }).then(response => {
+      var files = response.result.files;
+      if (files && files.length > 0) {
+        this.setState({ files, error: '' })
+      } else {
+        this.setState({ error: 'There are no PGTS events for your Google account.', files: [] })
+      }
+    })
   }
 
   render() {
     return (
       <form onSubmit={this.onSubmit}>
-        <label htmlFor='sheet-url'>Form Responses Sheet</label>
-        <input
-          id='sheet-url'
-          type='text'
-          value={this.state.sheetURL}
-          onChange={e => this.setState({ sheetURL: e.target.value })}
-        />
-        <input type='submit' value='Load Sheet' />
+        <button onClick={
+          e => {
+            e.preventDefault()
+            this.listSheets()
+          }
+        }>Refresh Pokémon GO Events</button>
+        { !!this.state.files.length && <h3>Select the event to edit</h3> }
+        { this.state.error && <p>{this.state.error}</p>}
+        <ul>
+          { this.state.files.map((file, i) =>
+              <li key={i}>
+                <button onClick={() => this.setState({ fileID: file.id })}>{file.name}</button>
+              </li>
+            )
+          }
+        </ul>
       </form>
     )
   }
