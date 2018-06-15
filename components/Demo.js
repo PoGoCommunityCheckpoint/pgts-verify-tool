@@ -22,24 +22,21 @@ export default class Demo extends Component {
   }
 
   setID = id => {
-    console.log(this)
     this.setState({ id }, this.fetchSheet)
   }
 
   fetchSheet = () => {
     gapi.client.sheets.spreadsheets.values.get({
       spreadsheetId: this.state.id,
-      range: 'Form Data!A:Q'
+      range: 'Form Data'
     }).then(response => {
       var range = response.result
       var mapping = response.result.values[0]
         .reduce((mapping, heading, index) => {
           mapping[index] = heading
-          if (heading === 'Verified By') {
-            this.setState({ organizerColumn: toColumnName(index + 1)})
-          }
           return mapping
-      }, {})
+        }, {})
+      var headings = response.result.values[0]
       var responses = response.result.values.slice(1).map((response, rowIndex) => {
         const responseObject = response.reduce((result, value, index) => {
           result[mapping[index]] = value
@@ -47,32 +44,42 @@ export default class Demo extends Component {
         }, {})
         responseObject.rowNumber = rowIndex + 2 // One for heading, one for index
         return responseObject
-      }).filter(row => !row['Organizer Name']) // Return only unverified entries.
-      this.setState({ info: responses, error: '' })
+      }).filter(row => !row['Verified By']) // Return only unverified entries.
+      .filter(row => row.Timestamp)
+      this.setState({ error: '', responses, headings })
     }, function(response) {
       this.setState({ error: response.result.error.message})
     })
   }
 
   verifySubmission = response => {
+    const { headings } = this.state
+    console.log(response, headings)
+    const lastColumnLetter = toColumnName(headings.length)
+    response['Verified By'] = 'me'
+    response['Verified At'] = (new Date).toLocaleString()
+    const responseArray =
+      headings.map(fieldName => response[fieldName])
     gapi.client.sheets.spreadsheets.values.update({
       spreadsheetId: this.state.id,
-      range: `raw-responses!${this.state.organizerColumn}${response.rowNumber}`,
+      range: `Form Data!A${response.rowNumber}:${lastColumnLetter}${response.rowNumber}`,
       valueInputOption: 'RAW',
-      resource: { values: [ [ this.props.username ] ]}
+      resource: { values: [ responseArray ]}
    }).then((response) => {
      this.fetchSheet()
    });
   }
 
   render() {
+    const { responses, headings, error} = this.state
     return (
-      !this.state.info ?
+      !responses ?
         <SheetsSelector onSubmit={this.setID} /> :
         <div>
+          <h2>Unverified Responses</h2>
           <input type='button' value='Refresh List' onClick={this.fetchSheet}/>
-          { this.state.info.map((row, i) =>
-            <ResponseDisplay response={row} key={i} onVerify={() => this.verifySubmission(row)}/>
+          { responses.map((row, i) =>
+            <ResponseDisplay response={row} headings={headings} key={i} onVerify={editedRow => this.verifySubmission(editedRow)}/>
             )
           }
         </div>
