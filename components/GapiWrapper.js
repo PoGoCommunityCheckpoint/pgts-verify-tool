@@ -27,8 +27,8 @@ class GapiWrapper extends Component {
   }
 
   initSheetsClient = () => {
-    const CLIENT_ID = '722909521465-25qaq3a1v3fr1djl72nk1uobidu4llu7.apps.googleusercontent.com'
-    const API_KEY = 'AIzaSyC2RYEj649zqatLnc6Zm7JLlouttQz96so'
+    const CLIENT_ID = '190245585824-sol8t549oi1tpr89fb6cek2igjou52mc.apps.googleusercontent.com'
+    const API_KEY = 'AIzaSyDGQt7BUYWYgfHkaxpDT_udMCK6h3bVovU'
     const DISCOVERY_DOCS = ["https://sheets.googleapis.com/$discovery/rest?version=v4","https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"]
     const SCOPES = "https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.metadata"
 
